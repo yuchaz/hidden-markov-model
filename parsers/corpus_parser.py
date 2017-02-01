@@ -1,13 +1,10 @@
 import os, json, ConfigParser
 import parsers.datapath_parser as dp
+from Classes.Document import Document
+
 config_path = './config.ini'
 section = 'path'
 data_dir = 'data_dir'
-
-class Document(object):
-    def __init__(self, token_tag_pairs):
-        self.tokens = [word[0] for word in token_tag_pairs]
-        self.tags = [word[1] for word in token_tag_pairs]
 
 path_dict = {
     'train': dp.get_train_set_path(),

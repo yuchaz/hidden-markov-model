@@ -6,10 +6,8 @@ LOG_PROB_WHEN_NOT_FOUND = -1000
 
 class LanguageModel(object):
     def __init__(self, corpus, n):
-        joint_count, self_count, vocabulary_size = calc_ngram_probability_distribution(corpus, n)
-        self.joint_counts = joint_counts
-        self.self_counts = self_counts
-        self.vocabulary_size = vocabulary_size
+        self.joint_count, self.self_count = calc_ngram_probability_distribution(corpus, n)
+        self.vocabulary_list, self.vocabulary_size = get_vocabulary_size(corpus)
         self.ngram = n
 
     def get_counts(self, token, k=0):
@@ -46,11 +44,11 @@ def calc_ngram_probability_distribution(corpus, n):
     vocabulary_size = get_vocabulary_size(corpus)
     if n != 1:
         n_1_gram_freq_dist = calc_freq_dist(n_1_gram_list)
-        return n_gram_freq_dist, n_1_gram_freq_dist, vocabulary_size
+        return n_gram_freq_dist, n_1_gram_freq_dist
     else:
-        return n_gram_freq_dist, len(n_gram_list), vocabulary_size
+        return n_gram_freq_dist, len(n_gram_list)
 
 def get_vocabulary_size(corpus):
     unigram_list = [token for sentence in corpus for token in preprocess_tokens(sentence,1)]
     unigram_freq_dist = calc_freq_dist(unigram_list)
-    return len(unigram_freq_dist)
+    return unigram_freq_dist.keys(), len(unigram_freq_dist)

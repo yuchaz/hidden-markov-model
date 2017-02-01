@@ -1,15 +1,13 @@
 import re
 
-START_SYMBOL = '*'
-STOP_SYMBOL = 'STOP'
+START_SYMBOL = '<START>'
+STOP_SYMBOL = '<STOP>'
 UNK_SYMBOL = '<UNK>'
-
 
 def generate_ngram(tokens,n):
     return zip(*[tokens[i:] for i in range(n)])
 
-def preprocess_tokens(sentence, n):
-    tokens = sentence.split(' ')
+def preprocess_tokens(tokens, n):
     return [START_SYMBOL for i in range(n-1)]+tokens+[STOP_SYMBOL]
 
 def replace_with_UNK(corpus, words_to_replace):

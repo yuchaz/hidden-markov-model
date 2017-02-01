@@ -11,7 +11,6 @@ class Document(object):
         self.hidden_cells = []*self.doc_length
         self.hidden_cells[0] = {START_SYMBOL:Cell(1,'')}
 
-
     def __iter__(self):
         for token_pos_tag_pair in (self.token_pos_tag_pair[idx]
                                    for idx in range(self.end_index)
@@ -22,10 +21,10 @@ class Document(object):
         return [tokn_pos_pair.pos_tag for tokn_pos_pair in self.token_pos_tag_pairs]
 
     def push_back():
-        if self.end_index < self.doc_length: self.end_index += 1
+        self.end_index += 1
 
     def pop_back():
-        if self.end_index > 0: self.end_index -= 1
+        self.end_index -= 1
 
     def get_last_term():
         return self.token_pos_tag_pairs[self.end_index-1]
@@ -33,22 +32,22 @@ class Document(object):
     def store_cells(self,idx,pos_tag,score,argmax_pos_tag):
         self.hidden_cells[idx] = {pos_tag: Cell(score, argmax_pos_tag)}
 
-    def calc_pi_score(self, hmm, current_pos_tag):
-        x_i = self.get_last_term().token
-        y_i = current_pos_tag
-        idx = self.end_index+1
+    def calc_pi_score(self, hmm, current_pos):
+        current_token = self.get_last_term().token
+        current_idx = self.end_index+1
         if self.end_index == 0:
-            max_pi_score = hmm.e_score(TokenPosTagPair(x_i,y_i), k) * \
-                           hmm.q_score((START_SYMBOL,y_i),k)
-            calc_y_i_1 = START_SYMBOL
+            max_pi_score = hmm.e_score(TokenPosTagPair(current_token,current_pos), k) * \
+                           hmm.q_score((START_SYMBOL,current_pos),k)
+            predicted_prev_pos = START_SYMBOL
         else:
-            calc_y_i_1, max_pi_score =  max(((pos_tag,
-                                        hmm.e_score(TokenPosTagPair(x_i,y_i),k) * \
-                                        hmm.q_score((pos_tag,y_i),k) * \
-                                        self.hidden_cells[idx][pos_tag].score )
-                                        for pos_tag in pos_choice),
-                                        key=lambda p:p[1])
-        self.store_cells(idx, y_i, max_pi_score, calc_y_i_1)
+            pos_choices = hmm.language_model.vocabulary_list
+            predicted_prev_pos, max_pi_score = \
+                max(((pos_tag, hmm.e_score(TokenPosTagPair(current_token,current_pos),k) * \
+                               hmm.q_score((pos_tag,current_pos),k) * \
+                               self.hidden_cells[current_idx-1][pos_tag].score)
+                               for pos_tag in pos_choice),
+                               key=lambda p:p[1])
+        self.store_cells(current_idx, current_pos, max_pi_score, predicted_prev_pos)
 
     def run_viterbi(self, hmm):
         if document.end_index <= self.doc_length:
@@ -63,7 +62,11 @@ class Document(object):
             self.back_propagation()
 
     def back_propagation():
-        if document.end_index >= 0:
+        if document.end_index > self.doc_length:
+            document.pop_back()
+            back_propagation
+
+        elif document.end_index > 0:
             current_pos = STOP_SYMBOL \
                             if  document.end_index == document.doc_length \
                             else self.predicted_pos_tags[0]
@@ -74,15 +77,19 @@ class Document(object):
             self.back_propagation()
         else: return
 
+    def get_score_and_predicted_pos_list():
+        return self.hidden_cells[-1][STOP_SYMBOL].score, elf.predicted_pos_tags
+
     def evaluate():
         if len(self.predicted_pos_tags) != self.doc_length:
             raise ValueError(
                 "You should not called this before running Viterbi algorithms"
             )
-        
-        return sum(1 for idx in range(len(self.token_pos_tag_pairs))
-                   if self.token_pos_tag_pairs[i].pos_tag == self.predicted_pos_tags[i])
 
+        accurate_count = sum(1 for idx in range(len(self.token_pos_tag_pairs))
+                   if self.token_pos_tag_pairs[i].pos_tag == self.predicted_pos_tags[i])
+        totol_count = len(self.token_pos_tag_pairs)
+        return accurate_count,totol_count
 
 class TokenPosTagPair(object):
     def __init__(self, token, pos_tag):

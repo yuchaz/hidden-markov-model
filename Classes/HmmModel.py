@@ -1,6 +1,5 @@
 from Classes.LanguageModel import LanguageModel
 from Classes.EmissionModel import EmissionModel
-from Classes.Document import TokenPosTagPair
 
 class HmmModel(object):
     def __init__(self, corpus, n):

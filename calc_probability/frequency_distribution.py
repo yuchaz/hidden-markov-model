@@ -1,8 +1,7 @@
 from collections import defaultdict
 
-def calc_freq_dist(lm_list):
+def calc_freq_dist(token_list):
     dictionary = defaultdict(int)
-    for lm in lm_list:
-        dictionary[lm] += 1
+    for token in token_list:
+        dictionary[token] += 1
     return dictionary
-    

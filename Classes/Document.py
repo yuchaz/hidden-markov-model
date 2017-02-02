@@ -35,8 +35,23 @@ class Document(object):
     def get_last_term(self):
         return self.token_pos_tag_pairs[self.end_index]
 
-    def store_cells(self,idx,pos_tag,score,argmax_pos_tag):
-        self.hidden_cells[idx].update({pos_tag: Cell(score, argmax_pos_tag)})
+    def run_viterbi(self,hmm):
+        if hmm.ngram == 2:
+            self.run_bigram_viterbi(hmm)
+        elif hmm.ngram == 3:
+            self.hidden_cells.append({})
+            self.run_trigram_viterbi(hmm)
+    def run_bigram_viterbi(self, hmm):
+        if self.end_index <= self.doc_length:
+            pos_choices = hmm.possible_pos_choices \
+                if self.end_index != self.doc_length else [STOP_SYMBOL]
+
+            for target_pos_tag in pos_choices:
+                self.calc_pi_score(hmm,target_pos_tag)
+            self.push_back()
+            self.run_bigram_viterbi(hmm)
+        else:
+            self.back_propagation()
 
     def calc_pi_score(self, hmm, current_pos):
         current_idx = self.end_index+1
@@ -60,17 +75,57 @@ class Document(object):
                                key=lambda p:p[1])
         self.store_cells(current_idx, current_pos, max_pi_score, predicted_prev_pos)
 
-    def run_viterbi(self, hmm):
-        if self.end_index <= self.doc_length:
-            pos_choices = hmm.possible_pos_choices \
-                if self.end_index != self.doc_length else [STOP_SYMBOL]
+    def run_trigram_viterbi(self, hmm):
+        if self.end_index <= self.doc_length+1:
+            current_pos_choices = hmm.possible_pos_choices \
+                if self.end_index < self.doc_length else [STOP_SYMBOL]
+            prev_pos_choices = [START_SYMBOL] if self.end_index == 0 \
+                               else [STOP_SYMBOL] if self.end_index == self.doc_length+1 \
+                               else hmm.possible_pos_choices
 
-            for target_pos_tag in pos_choices:
-                self.calc_pi_score(hmm,target_pos_tag)
+            for current_pos in current_pos_choices:
+                for prev_pos in prev_pos_choices:
+                    self.calc_trigram_pi_score(hmm,(current_pos,prev_pos))
             self.push_back()
-            self.run_viterbi(hmm)
+            self.run_trigram_viterbi(hmm)
         else:
-            self.back_propagation()
+            self.trigram_back_propagation()
+
+    def calc_trigram_pi_score(self,hmm,current_pos_tuples):
+        current_idx = self.end_index+1
+        current_pos, last_pos = current_pos_tuples
+        current_token = None if self.end_index >= self.doc_length else self.get_last_term().token
+
+        if self.end_index <= 1:
+            max_pi_score = hmm.e_score(TokenPosTagPair(current_token,current_pos)) + \
+                           hmm.q_score((START_SYMBOL,last_pos,current_pos))
+            predicted_prev_2_pos = START_SYMBOL
+
+        elif self.end_index == self.doc_length:
+            predicted_prev_2_pos, max_pi_score = \
+                max(((pos_tag, hmm.q_score((pos_tag,last_pos,current_pos)) + \
+                               self.hidden_cells[current_idx-1][(last_pos,pos_tag)].score)
+                               for pos_tag in hmm.possible_pos_choices),
+                               key=lambda p:p[1])
+        elif self.end_index == self.doc_length+1:
+            predicted_prev_2_pos, max_pi_score = \
+                max(((pos_tag, self.hidden_cells[current_idx-1][(last_pos,pos_tag)].score)
+                               for pos_tag in hmm.possible_pos_choices),
+                               key=lambda p:p[1])
+        else:
+            predicted_prev_2_pos, max_pi_score = \
+                max(((pos_tag, hmm.e_score(TokenPosTagPair(current_token,current_pos)) + \
+                               hmm.q_score((pos_tag,last_pos,current_pos)) + \
+                               self.hidden_cells[current_idx-1][(last_pos,pos_tag)].score)
+                               for pos_tag in hmm.possible_pos_choices),
+                               key=lambda p:p[1])
+        predicted_prev_pos = (last_pos,predicted_prev_2_pos)
+        current_pos = current_pos_tuples if self.end_index != self.doc_length+1 else STOP_SYMBOL
+        self.store_cells(current_idx, current_pos, max_pi_score, predicted_prev_pos)
+
+
+    def store_cells(self,idx,pos_tag,score,argmax_pos_tag):
+        self.hidden_cells[idx].update({pos_tag: Cell(score, argmax_pos_tag)})
 
     def back_propagation(self):
         if self.end_index > self.doc_length:
@@ -86,6 +141,29 @@ class Document(object):
             self.pop_back()
             self.back_propagation()
         else:
+            return
+
+    def trigram_back_propagation(self):
+        if self.end_index > self.doc_length+1:
+            self.pop_back()
+            self.trigram_back_propagation()
+
+        elif self.end_index > 1:
+            current_pos = STOP_SYMBOL \
+                            if  self.end_index == self.doc_length+1 \
+                            else (self.predicted_pos_tags[1],self.predicted_pos_tags[0])
+            # import pdb; pdb.set_trace()
+            score, back_pos_tuples = self.hidden_cells[self.end_index+1][current_pos].get_tuples()
+            back_pos, prev_pos = back_pos_tuples
+            if current_pos == STOP_SYMBOL:
+                self.predicted_pos_tags.appendleft(back_pos)
+                self.predicted_pos_tags.appendleft(prev_pos)
+            else:
+                self.predicted_pos_tags.appendleft(prev_pos)
+            self.pop_back()
+            self.trigram_back_propagation()
+        else:
+            self.predicted_pos_tags.pop()
             return
 
     def get_score_and_predicted_pos_list(self):

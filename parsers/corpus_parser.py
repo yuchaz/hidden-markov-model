@@ -1,6 +1,7 @@
 import os, json, ConfigParser
 import parsers.datapath_parser as dp
 from Classes.Document import Document
+from Classes.Corpus import Corpus
 
 config_path = './config.ini'
 section = 'path'
@@ -13,30 +14,30 @@ path_dict = {
     'bonus': dp.get_bonus_set_path()
 }
 
-def corpus_parser(*filedirs):
+def corpus_parser(ratio, shuffle, *filedirs):
     corpus = []
     for filedir in list(filedirs):
         with open(filedir, 'r') as fn:
             corpus += [Document(json.loads(token_tag_pair)) for token_tag_pair in fn]
         fn.close()
-    return corpus
+    return Corpus(corpus, ratio=ratio, shuffle=shuffle)
 
-def get_train_corpus():
-    return corpus_parser(path_dict['train'])
+def get_train_corpus(ratio=1.0,shuffle=False):
+    return corpus_parser(ratio,shuffle,path_dict['train'])
 
-def get_dev_corpus():
-    return corpus_parser(path_dict['dev'])
+def get_dev_corpus(ratio=1.0,shuffle=False):
+    return corpus_parser(ratio,shuffle,path_dict['dev'])
 
-def get_test_corpus():
-    return corpus_parser(path_dict['test'])
+def get_test_corpus(ratio=1.0,shuffle=False):
+    return corpus_parser(ratio,shuffle,path_dict['test'])
 
-def get_bonus_corpus():
-    return corpus_parser(path_dict['bonus'])
+def get_bonus_corpus(ratio=1.0,shuffle=False):
+    return corpus_parser(ratio,shuffle,path_dict['bonus'])
 
-def get_corpus_by_tag(*tags):
+def get_corpus_by_tag(ratio,shuffle,*tags):
     path_list = [path_dict.get(tag) for tag in list(tags)]
     if len(path_list) == 0: raise ValueError('You should only input train, dev, test or bonus')
-    return corpus_parser(*path_list)
+    return corpus_parser(ratio,shuffle,*path_list)
 
 if __name__ == '__main__':
     import pdb; pdb.set_trace()

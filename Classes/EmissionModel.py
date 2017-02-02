@@ -14,7 +14,7 @@ class EmissionModel(object):
         return emission_count+self.add_k, hiddenstate_count+self.vocabulary_size*self.add_k
 
     def get_MLE_probabilty(self, token_tag_pair):
-        numerator_count, denominator_count = self.get_counts(token_tag_pair,)
+        numerator_count, denominator_count = self.get_counts(token_tag_pair)
         if numerator_count==0 or denominator_count==0:
             return LOG_PROB_WHEN_NOT_FOUND
         return math.log(float(numerator_count)/denominator_count,2)
@@ -27,7 +27,7 @@ def calc_emission_state_distribution(corpus):
     tokens_list = []
     hiddenstate_count = []
     for document in corpus:
-        document_list += document.token_pos_tag_pairs
+        document_list += document.get_token_pos_tag_pair()
         tokens_list += document.get_token_corpus()
         hiddenstate_count += document.get_pos_tag_corpus()
     document_freq_dist = calc_freq_dist(document_list)

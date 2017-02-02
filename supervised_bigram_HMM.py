@@ -14,12 +14,12 @@ def get_accuracy(hmm, corpus):
 
 def main():
     train_corpus = cp.get_train_corpus()
-    dev_corpus = cp.get_dev_corpus()
+    dev_corpus = cp.get_dev_corpus(ratio=0.5)
 
     hmm_model = HmmModel(train_corpus,n=2,k_lan_model=0,k_emiss_model=0)
-    train_accuracy = get_accuracy(hmm_model, train_corpus)
+    # train_accuracy = get_accuracy(hmm_model, train_corpus)
     dev_accuracy = get_accuracy(hmm_model, dev_corpus)
-    print train_accuracy
+    # print train_accuracy
     print dev_accuracy
 
 

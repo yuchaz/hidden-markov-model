@@ -1,31 +1,34 @@
-from Classes.HmmModel import HmmModel
 from Classes.Corpus import Corpus
-import parsers.corpus_parser as cp
+from Classes.GridsearchWrapper import GridsearchWrapper
 import time
 
-def get_accuracy(hmm, corpus):
-    total_accu_count = 0
-    total_count = 0
-    for doc in corpus:
-        doc.run_viterbi(hmm)
-        accu_count, ttl_count = doc.evaluate()
-        total_accu_count += accu_count
-        total_count += ttl_count
-    return float(total_accu_count)/total_count
+train_list = ['train']
+dev_list = ['dev']
+train_corpus_param = {
+    'ratio': 1.,
+    'shuffle': False
+}
+dev_corpus_param = {
+    'ratio': 1,
+    'shuffle': True
+}
+
+default_params = {
+    "unk_threshold": 1,
+    "unk_oov_ratio": 0.005,
+    "trans_prob": 0.8,
+    "k_lan_model": 0.01,
+    "k_emiss_model": 0.01
+}
+updated_params = {
+    "k_lan_model": [1e-3,1e-2,1e-1,1,10],
+    "k_emiss_model": [1e-3,1e-2,1e-1,1,10],
+}
 
 def main():
-    train_corpus = Corpus.trainCorpus()
-    train_corpus.replace_oov_with_UNK()
-
-    # dev_corpus = cp.get_dev_corpus()
-    train_corpus_star = Corpus.trainCorpus(ratio=0.01,shuffle=True)
-    train_corpus_star.replace_oov_with_UNK()
-
-    hmm_model = HmmModel(train_corpus,n=3,k_lan_model=0,k_emiss_model=0)
-    train_accuracy_star = get_accuracy(hmm_model, train_corpus_star)
-    # dev_accuracy = get_accuracy(hmm_model, dev_corpus)
-    print train_accuracy_star
-    # print dev_accuracy
+    best_model = GridsearchWrapper(train_list, dev_list,train_corpus_param,
+                                   dev_corpus_param, 3, default_params,updated_params)
+    print best_model.best_model
 
 
 if __name__ == '__main__':

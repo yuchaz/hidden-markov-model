@@ -3,10 +3,19 @@ from Classes.Corpus import Corpus
 
 class GridsearchWrapper(object):
     def __init__(self,train_list,eval_list,train_corpus_param,eval_corpus_param,ngram,default_params,params={}):
+        self.updated_params = params
         self.best_params_ = {}
+        self.best_model = {}
         self.best_score_ = .0
         self.params_scores_list = []
         self.grid_search(train_list,eval_list,train_corpus_param,eval_corpus_param,ngram,default_params,params)
+        self.find_best_model_of_each_params()
+
+    def find_best_model_of_each_params(self):
+        for keys in self.updated_params.keys():
+            best_parscore = max((parscore for parscore in self.params_scores_list
+                                              if keys in parscore[1]), key=lambda ps:ps[0])
+            self.best_model.update({keys: best_parscore})
 
     def grid_search(self,train_list,eval_list,train_list_param,eval_corpus_param,ngram,default_params,params={}):
         default_unk_threshold = default_params.get('unk_threshold')
@@ -55,8 +64,6 @@ class GridsearchWrapper(object):
                                       default_unk_oov_ratio,default_trans_prob,
                                       default_k_lan_model,update_k_emiss_model)
                 self.params_scores_list.append((accu,{'k_emiss_model':update_k_emiss_model}))
-
-            self.best_score_, self.best_params_ = max((parscore for parscore in self.params_scores_list), lambda ps:ps[0])
 
 def run_experiment(train_list,eval_list,train_corpus_param,eval_corpus_param,ngram,unk_threshold,unk_oov_ratio,trans_prob,k_lan_model,k_emiss_model):
     train_corpus = Corpus.combinedCorpus(train_corpus_param['ratio'], train_corpus_param['shuffle'], *train_list)

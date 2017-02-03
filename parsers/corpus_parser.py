@@ -36,7 +36,7 @@ def get_bonus_corpus():
 def get_corpus_by_tag(*tags):
     path_list = [path_dict.get(tag) for tag in list(tags)]
     if len(path_list) == 0: raise ValueError('You should only input train, dev, test or bonus')
-    return corpus_parser(ratio,shuffle,*path_list)
+    return corpus_parser(*path_list)
 
 if __name__ == '__main__':
     import pdb; pdb.set_trace()

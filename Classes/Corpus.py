@@ -78,7 +78,7 @@ class Corpus(object):
         to_unk_dict = {}
         regex_not_to_unk = re.compile(r'^(?!https://|http://|#|@).*$')
         for k,v in random.permutation(token_freq_dist.items()):
-            if regex_not_to_unk.match(k) and v <= unk_threshold and \
+            if regex_not_to_unk.match(k) and int(v) <= unk_threshold and \
                     unk_count <= unk_oov_ratio * vocabulary_size and \
                     random.uniform(0,1) < trans_prob:
                 to_unk_dict.update({k:UNK})

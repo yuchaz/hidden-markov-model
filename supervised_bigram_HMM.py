@@ -1,4 +1,5 @@
 from Classes.HmmModel import HmmModel
+from Classes.Corpus import Corpus
 import parsers.corpus_parser as cp
 import time
 
@@ -13,8 +14,10 @@ def get_accuracy(hmm, corpus):
     return float(total_accu_count)/total_count
 
 def main():
-    train_corpus = cp.get_train_corpus()
-    dev_corpus = cp.get_dev_corpus(ratio=0.5)
+    train_corpus = Corpus.trainCorpus()
+    dev_corpus = Corpus.devCorpus(ratio=0.1,shuffle=True)
+    train_corpus.replace_oov_with_UNK()
+    dev_corpus.replace_oov_with_UNK()
 
     hmm_model = HmmModel(train_corpus,n=2,k_lan_model=0,k_emiss_model=0)
     # train_accuracy = get_accuracy(hmm_model, train_corpus)

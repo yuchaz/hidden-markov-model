@@ -12,8 +12,8 @@ class Document(object):
         self.hidden_cells[0] = {START_SYMBOL:Cell(1,'')}
 
     def __iter__(self):
-        for token_pos_tag_pair in self.doc_length:
-            yield tokens_tag_pair
+        for idx in range(self.doc_length):
+            yield self.token_pos_tag_pairs[idx]
 
     def get_pos_tag_corpus(self):
         return [tokn_pos_pair.pos_tag for tokn_pos_pair in self.token_pos_tag_pairs]
@@ -183,7 +183,7 @@ class Document(object):
 
     def replaced_with(self,to_unk_dict):
         for tokn_pos_pair in self:
-            self.tokn_pos_pair.replaced_with(to_unk_dict)
+            tokn_pos_pair.replaced_with(to_unk_dict)
 
 
 class TokenPosTagPair(object):

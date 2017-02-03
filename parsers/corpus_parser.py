@@ -1,7 +1,6 @@
 import os, json, ConfigParser
 import parsers.datapath_parser as dp
 from Classes.Document import Document
-from Classes.Corpus import Corpus
 
 config_path = './config.ini'
 section = 'path'

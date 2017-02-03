@@ -12,9 +12,7 @@ class Document(object):
         self.hidden_cells[0] = {START_SYMBOL:Cell(1,'')}
 
     def __iter__(self):
-        for token_pos_tag_pair in (self.token_pos_tag_pair[idx]
-                                   for idx in range(self.end_index)
-                                   if idx < self.end_index):
+        for token_pos_tag_pair in self.doc_length:
             yield tokens_tag_pair
 
     def get_pos_tag_corpus(self):
@@ -183,12 +181,21 @@ class Document(object):
     def print_ith_layer_hidden_cell(self,i):
         for k,v in self.hidden_cells[i].items(): print k,v
 
+    def replaced_with(self,to_unk_dict):
+        for tokn_pos_pair in self:
+            self.tokn_pos_pair.replaced_with(to_unk_dict)
+
+
 class TokenPosTagPair(object):
     def __init__(self, token, pos_tag):
         self.token = token
         self.pos_tag = pos_tag
     def get_tuples(self):
         return self.token, self.pos_tag
+    def replaced_with(self,to_unk_dict):
+        unk_type = to_unk_dict.get(self.token)
+        if unk_type != None:
+            self.token = unk_type
 
 class Cell(object):
     def __init__(self, score, back_pos):

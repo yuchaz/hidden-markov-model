@@ -13,10 +13,10 @@ def main():
     test_corpus.replace_oov_with_UNK(unk_threshold=1, unk_oov_ratio=0.005,
                                      trans_prob=0.7, known_unk_dict=train_corpus.to_unk_dict)
 
-    hmm = HmmModel(train_corpus, 2, 0.01, 0.001)
+    hmm = HmmModel(corpus=train_corpus, n=2, k_lan_model=0.01, k_emiss_model=0.001)
     accuracy = get_accuracy(hmm,test_corpus)
-    confusion_matrix = cm.calc_confusion_matrix(hmm, test_corpus)
-    cm.plot_confusion_matrix(confusion_matrix, hmm.possible_pos_choices )
+    # confusion_matrix = cm.calc_confusion_matrix(hmm, test_corpus)
+    # cm.plot_confusion_matrix(confusion_matrix, hmm.possible_pos_choices )
     print accuracy
 
 if __name__ == '__main__':

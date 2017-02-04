@@ -10,6 +10,7 @@ class Document(object):
         self.doc_length = len(sentence)
         self.hidden_cells = [{} for i in range(self.doc_length+2)]
         self.hidden_cells[0] = {START_SYMBOL:Cell(1,'')}
+        self.confusion_matrix = []
 
     def __iter__(self):
         for idx in range(self.doc_length):
@@ -185,6 +186,18 @@ class Document(object):
         for tokn_pos_pair in self:
             tokn_pos_pair.replaced_with(to_unk_dict)
 
+    def store_confusion_matrx(self, vocab_inverse_dict):
+        vocab_size = len(vocab_inverse_dict)
+        confusion_matrix = [[0 for i in range(vocab_size)] for j in range(vocab_size)]
+        actual_pos_tags = self.get_pos_tag_corpus()
+        for idx in range(len(self.predicted_pos_tags)):
+            pred_pos = self.predicted_pos_tags[idx]
+            actu_pos = actual_pos_tags[idx]
+            pred_pos_idx = vocab_inverse_dict.get(pred_pos)
+            actu_pos_idx = vocab_inverse_dict.get(actu_pos)
+            confusion_matrix[pred_pos_idx][actu_pos_idx] += 1
+        self.confusion_matrix = confusion_matrix
+        return self.confusion_matrix
 
 class TokenPosTagPair(object):
     def __init__(self, token, pos_tag):
